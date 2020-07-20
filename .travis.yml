@@ -24,9 +24,13 @@ jobs:
     install: skip
     script:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/ui check
+    deploy:
+    - provider: script
+      script:  bash script/deploy.sh
+      on:
+        all_branch: true
     env:
       - COVERAGE=0.5
-      - JOB=ui
   - stage: test-jdk-8
     jdk: openjdk8
     name: jdk8-tests
@@ -35,7 +39,6 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/service/cart check
     env:
       - COVERAGE=0.5
-      - JOB=other
   - stage: test-jdk-8
     jdk: openjdk8
     name: jdk8-tests
@@ -44,7 +47,6 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/service/user check
     env:
       - COVERAGE=0.5
-      - JOB=other
   - stage: test-jdk-8
     jdk: openjdk8
     name: jdk8-tests
@@ -53,7 +55,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/order check
     env:
       - COVERAGE=0.39
-      - JOB=other
+ 
 
   - stage: test-jdk-8
     jdk: openjdk8
@@ -63,7 +65,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/cart check
     env:
      - COVERAGE=0.5
-     - JOB=other
+
   - stage: test-jdk-8
     jdk: openjdk8
     name: jdk8-tests
@@ -72,7 +74,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/product check
     env:
       - COVERAGE=0.5
-      - JOB=other
+   
   - stage: test-jdk-8
     jdk: openjdk8
     name: jdk8-tests
@@ -81,7 +83,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/user check
     env:
       - COVERAGE=0.31
-      - JOB=other
+   
   - stage: test-jdk-9
     jdk: oraclejdk9
     name: jdk9-test
@@ -90,7 +92,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/ui check
     env:
       - COVERAGE=0.5
-      - JOB=other
+    
   - stage: test-jdk-9
     jdk: oraclejdk9
     name: jdk9-test
@@ -108,7 +110,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/service/user check
     env:
       - COVERAGE=0.5
-      - JOB=other
+     
   - stage: test-jdk-9
     jdk: oraclejdk9
     name: jdk9-test
@@ -117,7 +119,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/order check
     env:
       - COVERAGE=0.36
-      - JOB=other
+     
   - stage: test-jdk-9
     jdk: oraclejdk9
     name: jdk9-test
@@ -126,7 +128,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/cart check
     env:
       - COVERAGE=0.5
-      - JOB=other
+      
   - stage: test-jdk-9
     jdk: oraclejdk9
     name: jdk9-test
@@ -135,7 +137,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/product check
     env:
       - COVERAGE=0.5
-      - JOB=other
+     
   - stage: test-jdk-9
     jdk: oraclejdk9
     name: jdk9-test
@@ -144,17 +146,10 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/user check
     env:
       - COVERAGE=0.31
-      - JOB=other
+     
     
 after_success:
 - find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print $3" "$4" "$5}'
-
-deploy:
-- provider: script
-  script:  bash script/deploy.sh
-  on:
-    all_branch: true
-    condition: $JOB=ui
 
 env:
   global:
