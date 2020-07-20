@@ -1,10 +1,155 @@
-language: python
-install: "pip install -r requirements.txt"
+language: java
+
+jdk: openjdk8
+
+services:
+  - docker
+
+install:
+  - "./gradlew clean jar"
 
 script:
-  # Run ANSIBLE checks
-  # - ANSIBLE0008: Disabled for use of sudo warnings - to address
-  # - ANSIBLE0011: Disabled for all tasks which should be named
-  # - ANSIBLE0012: Disabled (should not change if nothings needs doing) - to address
-  # - ANSIBLE0013: Disabled - few uses of shell commands - to address
-  - find vagrant/provision -name "*.yml" -exec ansible-lint -x ANSIBLE008,ANSIBLE0011,ANSIBLE0012,ANSIBLE0013  {} +
+  - ./gradlew -p ./monolithic/ui packgeToContainer
+
+
+stages:
+  - test-jdk-8
+  - test-jdk-9
+
+jobs:
+  include:
+  - stage: test-jdk-8
+    jdk: openjdk8
+    name: jdk8-test
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/ui check
+    deploy:
+    - provider: script
+      script:  bash script/deploy.sh
+      on:
+        branch: master
+    env:
+      - COVERAGE=0.5
+  - stage: test-jdk-8
+    jdk: openjdk8
+    name: jdk8-tests
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/service/cart check
+    env:
+      - COVERAGE=0.5
+  - stage: test-jdk-8
+    jdk: openjdk8
+    name: jdk8-tests
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/service/user check
+    env:
+      - COVERAGE=0.5
+  - stage: test-jdk-8
+    jdk: openjdk8
+    name: jdk8-tests
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/order check
+    env:
+      - COVERAGE=0.39
+ 
+
+  - stage: test-jdk-8
+    jdk: openjdk8
+    name: jdk8-tests
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/cart check
+    env:
+     - COVERAGE=0.5
+
+  - stage: test-jdk-8
+    jdk: openjdk8
+    name: jdk8-tests
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/product check
+    env:
+      - COVERAGE=0.5
+   
+  - stage: test-jdk-8
+    jdk: openjdk8
+    name: jdk8-tests
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/user check
+    env:
+      - COVERAGE=0.31
+   
+  - stage: test-jdk-9
+    jdk: oraclejdk9
+    name: jdk9-test
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/ui check
+    env:
+      - COVERAGE=0.5
+    
+  - stage: test-jdk-9
+    jdk: oraclejdk9
+    name: jdk9-test
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/service/cart check
+    env:
+      - COVERAGE=0.5
+      - JOB=other
+  - stage: test-jdk-8
+    jdk: openjdk8
+    name: jdk8-tests
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/service/user check
+    env:
+      - COVERAGE=0.5
+     
+  - stage: test-jdk-9
+    jdk: oraclejdk9
+    name: jdk9-test
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/order check
+    env:
+      - COVERAGE=0.36
+     
+  - stage: test-jdk-9
+    jdk: oraclejdk9
+    name: jdk9-test
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/cart check
+    env:
+      - COVERAGE=0.5
+      
+  - stage: test-jdk-9
+    jdk: oraclejdk9
+    name: jdk9-test
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/product check
+    env:
+      - COVERAGE=0.5
+     
+  - stage: test-jdk-9
+    jdk: oraclejdk9
+    name: jdk9-test
+    install: skip
+    script:
+      - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/user check
+    env:
+      - COVERAGE=0.31
+      
+after_success:
+- find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print $3" "$4" "$5}'
+
+env:
+  global:
+    secure: NeBHEKfGElkWSPR/YAYlF8mqEFFni+YO2qz6ZXR4sPUn6LHgBcXJGdeuV4PCC0EzRtui9r54iaV7pApvML1wNmi/a09qvFTjZWcPsrVgZBAsm+ahSaLGfZ9KK/UOpTPvTuOXvuHGA/LmhNOkAeSqCq7RT6ezsnq53XuTVNhQysOTtlQs7ccEKSOb4P8MtC7H8Avzlvs4kCOY/uktHj/mpuElY/b4/mefetCblWIwpaTHIplmHpbmFMtdJUW3zq1Dh3IQpKUcmTjSuc0UtOga3FXIr4QDUO3jAeLHEXugZ9/DXBB32IMhQGCwUlwuZgW/MZF+iZhjd4nyiORGg0WSxBB+pS4MRXyBiBov6vNwz7NGlhsGNdDOaN5SFBhWI1NJw8b5SOQfd4AZH5q/i5jbvrcVJoucmH6Gzi51kDmpAEEwVKOfy2niIHz8Xe+0HNhdEhqfk0c5f2tqG/LnyKcdzxDgzZ98u26+4g0HbUC4VlXEIWorn1/uEcgWoK8XJTf4xftNSVdfAiGidrK7XGgyIEF3Fy7C3TsEOzAWEoSc5+3CT1VScdUktJnvSQNa3Cslod10wcPm4nHH9D7ztoVGg7NjoKbVN9ui3qVgzjDpzNdPCN0jxu9r5awqYKw314r+grUkn1W91LYyZeAaVI/rjNfgfMW5FqeEKXtJCuEWsno=
