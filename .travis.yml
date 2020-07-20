@@ -28,7 +28,7 @@ jobs:
     - provider: script
       script:  bash script/deploy.sh
       on:
-        all_branch: true
+        branch: master
     env:
       - COVERAGE=0.5
   - stage: test-jdk-8
