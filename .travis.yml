@@ -146,8 +146,7 @@ jobs:
       - COVERAGE=$COVERAGE ./gradlew -p ./monolithic/repository/user check
     env:
       - COVERAGE=0.31
-     
-    
+      
 after_success:
 - find . -name jacocoTestReport.csv|xargs cat|awk -F',' '{print $3" "$4" "$5}'
 
